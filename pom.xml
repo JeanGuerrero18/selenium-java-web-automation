@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.automation</groupId>
+    <artifactId>selenium-java-web-automation</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <selenium.version>4.51.0</selenium.version>
+        <testng.version>7.12.0</testng.version>
+        <extentreports.version>5.1.2</extentreports.version>
+        <assertj.version>3.27.7</assertj.version>
+        <logback.version>1.6.5</logback.version>
+
+        <!-- Mantener 3.5.x: 3.6.0 eliminó el provider nativo de TestNG (ejecuta TestNG mediante
+             JUnit Platform) e ignora suiteXmlFiles, con lo que se pierde el paralelismo del suite. -->
+        <surefire.version>3.5.6</surefire.version>
+        <compiler.version>3.16.0</compiler.version>
+        <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
+        <!-- Mantener 12.x: desde 13.0.0 Checkstyle requiere Java 21 y el proyecto (y su CI) usa Java 17. -->
+        <checkstyle.version>12.3.1</checkstyle.version>
+
+        <!-- Suite por defecto; se cambia con -Dsuite=src/test/resources/suites/saucedemo.xml -->
+        <suite>testng.xml</suite>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aventstack</groupId>
+            <artifactId>extentreports</artifactId>
+            <version>${extentreports.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${compiler.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <!-- Extent escribe el HTML con el charset por defecto de la JVM (Cp1252 en Windows con
+                         JDK 17) aunque declara UTF-8; sin esto las tildes salen como caracteres inválidos. -->
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>${suite}</suiteXmlFile>
+                    </suiteXmlFiles>
+                </configuration>
+            </plugin>
+            <!-- Lint: mvn checkstyle:check. No se ata a ninguna fase, igual que ruff en el proyecto
+                 Python; el CI lo ejecuta como job propio antes de los tests. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${checkstyle-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>config/checkstyle/checkstyle.xml</configLocation>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <consoleOutput>true</consoleOutput>
+                    <violationSeverity>warning</violationSeverity>
+                    <failOnViolation>true</failOnViolation>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

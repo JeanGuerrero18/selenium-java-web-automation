@@ -1,0 +1,15 @@
+target/
+test-output/
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Configuración local / secretos
+*.local.properties
+.env

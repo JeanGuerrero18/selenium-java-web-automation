@@ -1,0 +1,59 @@
+name: UI tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "TestNG suite file"
+        default: "testng.xml"
+        required: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+      - run: mvn -B checkstyle:check
+
+  ui-tests:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      # Deja que cada navegador termine para que un fallo no oculte los demás
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox, edge]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      # Chrome, Firefox y Edge vienen preinstalados en ubuntu-latest;
+      # Selenium Manager descarga los drivers correspondientes en tiempo de ejecución.
+      # Los inputs pasan por variables de entorno, nunca interpolados en el script (evita inyección de shell)
+      - name: Run tests
+        env:
+          SUITE: ${{ inputs.suite || 'testng.xml' }}
+          BROWSER: ${{ matrix.browser }}
+        run: mvn -B test -Dsuite="$SUITE" -Dbrowser="$BROWSER" -Dheadless=true
+
+      - name: Upload Extent report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: extent-report-${{ matrix.browser }}
+          path: target/extent-report/
+          retention-days: 14
